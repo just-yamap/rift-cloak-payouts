@@ -1,4 +1,4 @@
-# RIFT ATM × Cloak Protocol — Shielded Vendor Payments
+# RIFT ATM x Cloak Protocol - Shielded Vendor Payments
 
 ## Problem
 
@@ -93,11 +93,11 @@ npx tsx scripts/04-verify.ts    # verifies all 3 mainnet TXs (no funds spent)
 
 ### Wire into RIFT ATM (3 lines total, done by operator)
 ```js
-// atm-connector.js — add one line:
+// atm-connector.js - add one line:
 app.use('/api/cloak', require('./cloak-routes')());
 ```
 ```python
-# server.py — add two lines:
+# server.py - add two lines:
 from cloak_routes import bp as cloak_bp
 app.register_blueprint(cloak_bp)
 ```
@@ -117,7 +117,7 @@ node -e "const r = require('./cloak-routes')(); console.log(r.stack.map(l => l.r
 1. **Real SDK usage.** `cloak.js` imports `transact`, `fullWithdraw`,
    `createUtxo`, `createZeroUtxo`, `generateUtxoKeypair`, `serializeUtxo`,
    `deserializeUtxo`, and `generateViewingKeyPair` from `@cloak.dev/sdk`.
-   These are not wrappers — they drive ZK proof generation, Merkle tree
+   These are not wrappers - they drive ZK proof generation, Merkle tree
    construction, and relay submission.
 
 2. **Real mainnet transactions.** The 3 TX signatures above are finalized on
@@ -136,7 +136,7 @@ node -e "const r = require('./cloak-routes')(); console.log(r.stack.map(l => l.r
 
 5. **Viewing keys for compliance.** `issueViewingKey()` uses the SDK's
    `generateViewingKeyPair()` to produce keys that can decrypt transaction
-   metadata without spending authority — critical for ATM regulatory compliance.
+   metadata without spending authority - critical for ATM regulatory compliance.
 
 ## Files Created
 

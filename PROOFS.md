@@ -1,4 +1,4 @@
-# On-chain Proofs — Solana Mainnet
+# On-chain Proofs - Solana Mainnet
 
 All transactions submitted from operator wallet:
 `33oX24NFJHnTaGctA6g8mU42oR2MYGWKBJSmGzsgjoRn`
@@ -9,7 +9,7 @@ USDC mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
 
 ---
 
-## Transaction 1 — Shield (operator deposits treasury)
+## Transaction 1 - Shield (operator deposits treasury)
 
 **Action**: 0.5 USDC moved from operator's public ATA into the Cloak shielded pool.
 
@@ -17,15 +17,15 @@ USDC mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
 - **Slot**: 418952017
 - **Explorer**: https://explorer.solana.com/tx/NqU9eJ6QWZH1ydqtwLrCYESV7DL8D18raRS8uzQxuAtg9jXkQ3gQ6QCWiQbCaRuXGXY9qQd1HFQatqU5Twz8uu5
 
-This TX is publicly visible — observers see the operator deposited 0.5 USDC.
+This TX is publicly visible - observers see the operator deposited 0.5 USDC.
 
 ---
 
-## Transaction 2 — Shielded Transfer (operator → vendor, PRIVATE)
+## Transaction 2 - Shielded Transfer (operator → vendor, PRIVATE)
 
 **Action**: 0.3 USDC sent privately from operator's UTXO to a vendor's UTXO,
 entirely within the Cloak pool. The amount and recipient are cryptographically
-hidden — observers see only that a transfer happened.
+hidden - observers see only that a transfer happened.
 
 - **Signature**: `2utf1N1rSM1YmqHP8a96C7kP3HMpjZA3PTqpShQXCziBhnPXC5Lm5DTw6q2WRHyqQNh9PEZpFqmC1wWPcPSmSazx`
 - **Slot**: 418955174
@@ -38,7 +38,7 @@ This is the privacy-bearing step. Anyone watching the chain cannot determine:
 
 ---
 
-## Transaction 3 — Withdraw (vendor → public address)
+## Transaction 3 - Withdraw (vendor → public address)
 
 **Action**: The vendor withdraws their 0.3 USDC from the Cloak pool to a public
 Solana address. The recipient address is publicly visible, but the link back to
@@ -54,8 +54,8 @@ the operator's shield TX is broken.
 
 | Observable | Without Cloak | With Cloak |
 |---|---|---|
-| Operator's outflow amount | Visible (0.3 USDC) | Pool-level only (0.5 in, 0.3 out — could be anyone's) |
-| Vendor's identity | Visible | Hidden — no link to operator |
+| Operator's outflow amount | Visible (0.3 USDC) | Pool-level only (0.5 in, 0.3 out - could be anyone's) |
+| Vendor's identity | Visible | Hidden - no link to operator |
 | Payment cadence | Indexed | Unobservable |
 | Compliance audit | Public records | Viewing-key controlled (selective disclosure) |
 
