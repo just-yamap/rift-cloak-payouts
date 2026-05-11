@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+poc/node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+poc/.env
+
+# State (contains private keys)
+.cloak-poc-state.json
+.cloak-poc-state.json.bak-*
+poc/.cloak-poc-state.json
+poc/.cloak-poc-state.json.bak-*
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

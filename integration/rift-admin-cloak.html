@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIFT Admin — Private Payouts (Cloak)</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --pri:#ffffff;--pri-d:#999999;--pri-l:#ffffff;
+  --pri-10:rgba(255,255,255,.06);--pri-20:rgba(255,255,255,.10);
+  --acc:#555555;--acc-d:#333333;
+  --bg:#000000;--card:#0a0a0a;--surf:#141414;--surf2:#1a1a1a;--surf3:#222222;
+  --txt:#ffffff;--txt-d:#b8b8b8;--txt-dd:#7a7a7a;
+  --bord:#222222;--bord-l:#3a3a3a;
+  --grn:#00ff88;--red:#ff3344;--blu:#60a5fa;--org:#fbbf24;--sol:#a78bfa;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);font-family:'Space Grotesk',sans-serif;color:var(--txt);padding:24px;max-width:960px;margin:0 auto;}
+
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bord);}
+.page-hdr-title{font-size:20px;font-weight:600;color:var(--txt);}
+.page-hdr-sub{font-size:11px;color:var(--txt-dd);margin-top:4px;}
+
+.card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:20px 22px;margin-bottom:14px;}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-dd);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
+.card-value{font-size:28px;font-weight:700;color:var(--txt);font-family:'JetBrains Mono',monospace;}
+.card-meta{font-size:10px;color:var(--txt-dd);margin-top:6px;}
+
+.info-box{font-size:11px;color:var(--txt-d);line-height:1.5;padding:10px 12px;border-left:2px solid;margin-top:12px;}
+.info-box.green{background:rgba(74,222,128,0.04);border-color:rgba(74,222,128,0.4);}
+.info-box.red{background:rgba(255,51,68,0.05);border-color:rgba(255,51,68,0.3);}
+.info-box.blue{background:rgba(96,165,250,0.05);border-color:rgba(96,165,250,0.3);}
+
+.form-group{margin-bottom:14px;}
+.form-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-dd);letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:6px;}
+.form-input{
+  width:100%;background:var(--surf);border:1px solid var(--bord-l);border-radius:8px;
+  padding:10px 14px;color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;
+}
+.form-input:focus{border-color:var(--txt-dd);}
+.form-input::placeholder{color:var(--txt-dd);}
+
+.btn{
+  padding:8px 18px;border:none;border-radius:8px;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;
+  transition:all .15s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-pri{background:var(--txt);color:var(--bg);}
+.btn-pri:hover:not(:disabled){opacity:0.85;}
+.btn-ghost{background:transparent;color:var(--txt-d);border:1px solid var(--bord-l);}
+.btn-ghost:hover:not(:disabled){background:var(--surf);color:var(--txt);}
+.btn-red{background:rgba(255,51,68,0.15);color:var(--red);border:1px solid rgba(255,51,68,0.2);}
+.btn-red:hover:not(:disabled){background:rgba(255,51,68,0.25);}
+.btn-sm{padding:6px 14px;font-size:11px;}
+
+.status-bar{
+  padding:12px 16px;border-radius:8px;margin-bottom:14px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;display:none;
+}
+.status-bar.pending{background:rgba(251,191,36,0.08);color:var(--org);border:1px solid rgba(251,191,36,0.2);}
+.status-bar.success{background:rgba(74,222,128,0.08);color:var(--grn);border:1px solid rgba(74,222,128,0.2);}
+.status-bar.error{background:rgba(255,51,68,0.08);color:var(--red);border:1px solid rgba(255,51,68,0.2);}
+
+/* History table */
+.htable{width:100%;border-collapse:collapse;font-size:11px;}
+.htable th{
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-dd);
+  letter-spacing:0.12em;text-transform:uppercase;text-align:left;
+  padding:8px 10px;border-bottom:1px solid var(--bord);
+}
+.htable td{padding:8px 10px;border-bottom:1px solid var(--bord);color:var(--txt-d);font-family:'JetBrains Mono',monospace;font-size:10px;}
+.htable tr:hover td{background:var(--pri-10);}
+.pill{padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600;}
+.pill.confirmed{background:rgba(74,222,128,0.12);color:var(--grn);}
+.pill.pending{background:rgba(251,191,36,0.12);color:var(--org);}
+.pill.failed{background:rgba(255,51,68,0.12);color:var(--red);}
+
+.copy-btn{
+  background:none;border:1px solid var(--bord-l);border-radius:4px;
+  color:var(--txt-dd);cursor:pointer;padding:2px 8px;font-size:9px;
+  font-family:'JetBrains Mono',monospace;
+}
+.copy-btn:hover{color:var(--txt);border-color:var(--txt-dd);}
+
+.confirm-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+}
+.confirm-box{
+  background:var(--card);border:1px solid var(--bord);border-radius:16px;
+  padding:28px;width:380px;max-width:90vw;
+}
+.confirm-title{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--txt);margin-bottom:10px;}
+.confirm-body{font-size:13px;color:var(--txt-d);line-height:1.6;margin-bottom:24px;}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--txt-dd);font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="page-hdr">
+  <div>
+    <div class="page-hdr-title">Private Payouts <span style="color:var(--txt-dd);font-size:11px;font-weight:400;">(Cloak protocol)</span></div>
+    <div class="page-hdr-sub">Shielded USDC vendor payments · ZK proof privacy · operator viewing key for compliance</div>
+  </div>
+  <button class="btn btn-ghost btn-sm" onclick="refreshAll()">↻ Refresh</button>
+</div>
+
+<!-- ═══ STATUS BAR ═══ -->
+<div class="status-bar" id="statusBar"></div>
+
+<!-- ═══ POOL BALANCE CARD ═══ -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div class="card-label">Shielded Pool Balance (operator)</div>
+      <div class="card-value" id="poolBalance">—</div>
+      <div class="card-meta" id="poolMeta">Loading...</div>
+    </div>
+    <div style="font-size:36px;opacity:0.15;">🛡</div>
+  </div>
+  <div class="info-box green">
+    <strong style="color:var(--grn);">Cloak pool:</strong> USDC shielded via ZK proofs into the Cloak protocol.
+    Balance is derived from operator transaction history (shields minus withdrawals and transfers).
+  </div>
+</div>
+
+<!-- ═══ SEND PRIVATE PAYMENT FORM ═══ -->
+<div class="card">
+  <div class="card-label">Send Private Payment</div>
+  <div style="margin-top:12px;">
+
+    <div class="form-group">
+      <label class="form-label" for="sendAction">Action</label>
+      <select class="form-input" id="sendAction" style="appearance:none;cursor:pointer;">
+        <option value="shield">Shield USDC into pool</option>
+        <option value="private_transfer" selected>Private transfer (pool → vendor)</option>
+        <option value="withdraw">Withdraw to public address</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="sendRecipient">Recipient address</label>
+      <input class="form-input" id="sendRecipient" type="text" placeholder="Solana address (base58) or UTXO public key">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="sendAmount">Amount (USDC)</label>
+      <input class="form-input" id="sendAmount" type="number" step="0.01" min="0.01" placeholder="0.00">
+    </div>
+
+    <!-- UTXO fields (shown for transfer/withdraw) -->
+    <div id="utxoFields">
+      <div class="form-group">
+        <label class="form-label" for="sendUtxo">Input UTXO (hex)</label>
+        <input class="form-input" id="sendUtxo" type="text" placeholder="Hex-serialized UTXO from previous shield or transfer">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="sendOwnerPriv">Owner private key</label>
+          <input class="form-input" id="sendOwnerPriv" type="password" placeholder="bigint string">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="sendOwnerPub">Owner public key</label>
+          <input class="form-input" id="sendOwnerPub" type="text" placeholder="bigint string">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+      <button class="btn btn-pri" id="sendBtn" onclick="confirmSend()">Send Private Payment</button>
+      <span style="font-size:10px;color:var(--txt-dd);" id="sendHint">Requires explicit confirmation before execution</span>
+    </div>
+  </div>
+
+  <div class="info-box red" style="margin-top:16px;">
+    <strong style="color:var(--red);">⚠ Warning:</strong> This executes a real on-chain transaction with ZK proof generation (20-60 seconds).
+    Ensure the amount and recipient are correct before confirming. Transactions cannot be reversed.
+  </div>
+</div>
+
+<!-- ═══ HISTORY TABLE ═══ -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div class="card-label" style="margin-bottom:0;">Transaction History</div>
+    <select class="form-input" id="historyFilter" onchange="loadHistory()" style="width:auto;padding:4px 10px;font-size:10px;">
+      <option value="">All types</option>
+      <option value="shield">Shields</option>
+      <option value="private_transfer">Transfers</option>
+      <option value="withdraw">Withdrawals</option>
+      <option value="viewing_key_issued">Viewing keys</option>
+    </select>
+  </div>
+  <div id="historyContainer">
+    <div class="empty-state">Loading history...</div>
+  </div>
+</div>
+
+<!-- ═══ VIEWING KEY CARD ═══ -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div>
+      <div class="card-label">Issue Viewing Key for Auditor</div>
+      <div style="font-size:11px;color:var(--txt-d);margin-top:4px;">
+        Generate a viewing key that lets auditors decrypt transaction metadata without spending authority.
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="vkBtn" onclick="confirmViewingKey()">Generate Key</button>
+  </div>
+
+  <div id="vkResult" style="display:none;">
+    <div class="form-group">
+      <label class="form-label">Public key (share with auditor)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="form-input" id="vkPublic" type="text" readonly style="flex:1;">
+        <button class="copy-btn" onclick="copyToClipboard('vkPublic')">Copy</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Private key (keep secure — do not share)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="form-input" id="vkPrivate" type="password" readonly style="flex:1;">
+        <button class="copy-btn" onclick="toggleVkVisibility()">Show</button>
+        <button class="copy-btn" onclick="copyToClipboard('vkPrivate')">Copy</button>
+      </div>
+    </div>
+    <div class="card-meta" id="vkMeta"></div>
+  </div>
+
+  <div class="info-box blue">
+    <strong style="color:var(--blu);">Compliance:</strong> The viewing key can decrypt all Cloak transaction metadata
+    (amounts, recipients, timestamps) for this operator's activity. It does NOT grant spending authority.
+    Only issue to authorized auditors. Generated keys are logged in the history.
+  </div>
+</div>
+
+<!-- ═══ CONFIRMATION DIALOG ═══ -->
+<div class="confirm-overlay" id="confirmDialog" style="display:none;">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Confirm Action</div>
+    <div class="confirm-body" id="confirmBody">Are you sure?</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-pri btn-sm" id="confirmOkBtn" onclick="">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   RIFT Admin — Cloak Private Payouts
+   All actions are user-triggered. Nothing auto-executes on load.
+   XHRs go to /admin/cloak/* (Flask blueprint proxies to connector).
+   ═══════════════════════════════════════════════════════════ */
+
+const API = '/admin/cloak';
+
+// ── Helpers ──────────────────────────────────────────────────
+
+function $(id) { return document.getElementById(id); }
+
+function showStatus(msg, type) {
+  const bar = $('statusBar');
+  bar.className = 'status-bar ' + type;
+  bar.textContent = msg;
+  bar.style.display = 'block';
+  if (type === 'success') setTimeout(() => { bar.style.display = 'none'; }, 8000);
+}
+
+function hideStatus() { $('statusBar').style.display = 'none'; }
+
+function copyToClipboard(id) {
+  const el = $(id);
+  navigator.clipboard.writeText(el.value).then(() => {
+    showStatus('Copied to clipboard.', 'success');
+  });
+}
+
+function toggleVkVisibility() {
+  const el = $('vkPrivate');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+async function apiFetch(path, opts) {
+  const url = API + path;
+  const res = await fetch(url, opts);
+  const data = await res.json();
+  if (!res.ok && !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ── Pool balance ─────────────────────────────────────────────
+
+async function loadBalance() {
+  try {
+    const data = await apiFetch('/balance');
+    $('poolBalance').textContent = (data.balance_usdc || 0).toFixed(2) + ' USDC';
+    $('poolMeta').textContent = data.last_updated
+      ? 'Last activity: ' + new Date(data.last_updated).toLocaleString()
+      : 'No activity yet';
+  } catch (e) {
+    $('poolBalance').textContent = '—';
+    $('poolMeta').textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── History ──────────────────────────────────────────────────
+
+async function loadHistory() {
+  const container = $('historyContainer');
+  const filter = $('historyFilter').value;
+  try {
+    const params = filter ? '?type=' + filter : '';
+    const data = await apiFetch('/history' + params);
+    if (!data.history || data.history.length === 0) {
+      container.innerHTML = '<div class="empty-state">No transactions yet.</div>';
+      return;
+    }
+    let html = '<table class="htable"><thead><tr>';
+    html += '<th>Type</th><th>Amount</th><th>Recipient</th><th>TX Signature</th><th>Date</th><th>Status</th>';
+    html += '</tr></thead><tbody>';
+    for (const tx of data.history) {
+      const sig = tx.tx_signature
+        ? '<a href="https://explorer.solana.com/tx/' + tx.tx_signature + '" target="_blank" style="color:var(--blu);text-decoration:none;">' + tx.tx_signature.slice(0, 12) + '...</a>'
+        : '—';
+      const recipient = tx.recipient
+        ? tx.recipient.slice(0, 8) + '...'
+        : '—';
+      const date = tx.timestamp
+        ? new Date(tx.timestamp).toLocaleDateString() + ' ' + new Date(tx.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+        : '—';
+      const amount = tx.type === 'viewing_key_issued' ? '—' : (tx.amount_usdc || 0).toFixed(2) + ' USDC';
+      html += '<tr>';
+      html += '<td>' + formatType(tx.type) + '</td>';
+      html += '<td>' + amount + '</td>';
+      html += '<td title="' + (tx.recipient || '') + '">' + recipient + '</td>';
+      html += '<td>' + sig + '</td>';
+      html += '<td>' + date + '</td>';
+      html += '<td><span class="pill ' + tx.status + '">' + tx.status + '</span></td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="empty-state">Error loading history: ' + e.message + '</div>';
+  }
+}
+
+function formatType(type) {
+  const map = {
+    shield: '🛡 Shield',
+    private_transfer: '🔒 Transfer',
+    withdraw: '📤 Withdraw',
+    viewing_key_issued: '🔑 VK Issued',
+  };
+  return map[type] || type;
+}
+
+// ── Send form logic ──────────────────────────────────────────
+
+$('sendAction').addEventListener('change', function() {
+  const action = this.value;
+  $('utxoFields').style.display = action === 'shield' ? 'none' : 'block';
+  $('sendRecipient').placeholder = action === 'withdraw'
+    ? 'Solana address (base58)'
+    : action === 'private_transfer'
+      ? 'Recipient UTXO public key (bigint string) — leave blank for auto-generated'
+      : 'Not needed for shield';
+});
+
+// Initialize UTXO fields visibility
+$('sendAction').dispatchEvent(new Event('change'));
+
+function confirmSend() {
+  const action = $('sendAction').value;
+  const amount = parseFloat($('sendAmount').value);
+  const recipient = $('sendRecipient').value.trim();
+
+  if (!amount || amount <= 0) {
+    showStatus('Enter a valid amount.', 'error');
+    return;
+  }
+
+  const actionLabel = { shield: 'Shield', private_transfer: 'Private Transfer', withdraw: 'Withdraw' }[action] || action;
+  const recipientLabel = recipient ? recipient.slice(0, 12) + '...' : '(auto)';
+
+  showConfirm(
+    'Confirm ' + actionLabel,
+    'Execute <strong>' + actionLabel + '</strong> for <strong>' + amount.toFixed(2) + ' USDC</strong>' +
+    (action !== 'shield' ? ' to <strong>' + recipientLabel + '</strong>' : '') +
+    '?<br><br><span style="font-size:11px;color:var(--txt-dd);">ZK proof generation takes 20-60 seconds. Do not close this page.</span>',
+    executeSend,
+  );
+}
+
+async function executeSend() {
+  closeConfirm();
+  const action = $('sendAction').value;
+  const amount = parseFloat($('sendAmount').value);
+  const recipient = $('sendRecipient').value.trim();
+  const inputUtxo = $('sendUtxo').value.trim();
+  const ownerPriv = $('sendOwnerPriv').value.trim();
+  const ownerPub = $('sendOwnerPub').value.trim();
+
+  $('sendBtn').disabled = true;
+  $('sendHint').textContent = '';
+  showStatus('Submitting... ZK proof generation in progress (20-60s)', 'pending');
+
+  try {
+    const body = {
+      action: action,
+      amount_usdc: amount,
+      confirm: 'yes',
+    };
+    if (recipient) body.recipient = recipient;
+    if (inputUtxo) body.input_utxo = inputUtxo;
+    if (ownerPriv) body.owner_priv = ownerPriv;
+    if (ownerPub) body.owner_pub = ownerPub;
+
+    const data = await apiFetch('/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    showStatus('Transaction confirmed: ' + (data.result?.signature || data.id || 'OK'), 'success');
+    loadBalance();
+    loadHistory();
+  } catch (e) {
+    showStatus('Error: ' + e.message, 'error');
+  } finally {
+    $('sendBtn').disabled = false;
+    $('sendHint').textContent = 'Requires explicit confirmation before execution';
+  }
+}
+
+// ── Viewing key ──────────────────────────────────────────────
+
+function confirmViewingKey() {
+  showConfirm(
+    'Generate Viewing Key',
+    'This will generate a new viewing key pair for auditor compliance.<br><br>' +
+    'The <strong>private key</strong> stays with you. Share only the <strong>public key</strong> with the auditor.',
+    executeViewingKey,
+  );
+}
+
+async function executeViewingKey() {
+  closeConfirm();
+  $('vkBtn').disabled = true;
+
+  try {
+    const data = await apiFetch('/viewing-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scope: 'full' }),
+    });
+
+    const vk = data.viewing_key;
+    $('vkPublic').value = vk.publicKey;
+    $('vkPrivate').value = vk.privateKey;
+    $('vkPrivate').type = 'password';
+    $('vkMeta').textContent = 'Scope: ' + vk.scope + ' · Issued: ' + new Date(vk.issuedAt).toLocaleString();
+    $('vkResult').style.display = 'block';
+    showStatus('Viewing key generated. Share the public key with the auditor.', 'success');
+    loadHistory();
+  } catch (e) {
+    showStatus('Error generating viewing key: ' + e.message, 'error');
+  } finally {
+    $('vkBtn').disabled = false;
+  }
+}
+
+// ── Confirm dialog ───────────────────────────────────────────
+
+let _confirmCallback = null;
+
+function showConfirm(title, body, callback) {
+  $('confirmTitle').textContent = title;
+  $('confirmBody').innerHTML = body;
+  _confirmCallback = callback;
+  $('confirmOkBtn').onclick = function() { if (_confirmCallback) _confirmCallback(); };
+  $('confirmDialog').style.display = 'flex';
+}
+
+function closeConfirm() {
+  $('confirmDialog').style.display = 'none';
+  _confirmCallback = null;
+}
+
+// Close confirm on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeConfirm();
+});
+
+// ── Refresh all ──────────────────────────────────────────────
+
+function refreshAll() {
+  loadBalance();
+  loadHistory();
+}
+
+// ── Initial load ─────────────────────────────────────────────
+// Only load read-only data. No transactions auto-execute.
+document.addEventListener('DOMContentLoaded', function() {
+  loadBalance();
+  loadHistory();
+});
+</script>
+</body>
+</html>
